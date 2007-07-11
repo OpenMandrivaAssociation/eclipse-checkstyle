@@ -1,41 +1,51 @@
-%define eclipse_base %{_datadir}/eclipse
-%define cs_ver 4.3
-%define eclipse_ver 3.2
-%define gcj_support 1
+%define eclipse_base    %{_datadir}/eclipse
+%define cs_ver          4.3
+%define eclipse_ver     3.2
+%define gcj_support     1
 
-Summary:   Checkstyle plugin for Eclipse
-Name:      eclipse-checkstyle
-Version:   4.0.1
-Release:   %mkrel 6.1
-License:   LGPL
-Group:     Development/Java
-URL:       http://eclipse-cs.sourceforge.net
-Buildroot: {_tmppath}/%{name}-%{version}-%{release}-root
-
-Source0: CheckstylePlugin-v4_0_1.tar.bz2
-Source10: checkout_and_build_tarball.sh
-
-# remove problematic getEclipseClasspath call and checkstyle jar inclusion
-Patch0: %{name}-%{version}.patch
-# remove problematic eclipse 3.0 backwards compatibility
-Patch1: %{name}-%{version}-tabwidth.patch
-
-Requires: eclipse-platform >= 1:%{eclipse_ver}
-Requires: checkstyle = 0:%{cs_ver}
-Requires: checkstyle-optional = 0:%{cs_ver}
-
-BuildRequires: jpackage-utils >= 0:1.5
-BuildRequires: ant >= 0:1.6
-BuildRequires: eclipse-pde >= 1:%{eclipse_ver}
-BuildRequires: checkstyle = 0:%{cs_ver}
-BuildRequires: checkstyle-optional = 0:%{cs_ver}
+Name:           eclipse-checkstyle
+Version:        4.3.2
+Release:        %mkrel 0.0.1
+Epoch:          0
+Summary:        Checkstyle plugin for Eclipse
+License:        LGPL
+Group:          Development/Java
+URL:            http://eclipse-cs.sourceforge.net/
+Source0:        CheckstylePlugin-v4_3_2.tar.bz2
+Source1:        checkout_and_build_tarball.sh
+Patch0:         %{name}-4.3.2.patch
+Patch1:         %{name}-4.3.2-manifest.patch
+Requires:       eclipse-platform >= 1:%{eclipse_ver}
+Requires:       checkstyle = 0:%{cs_ver}
+Requires:       checkstyle-optional = 0:%{cs_ver}
+Requires:       jakarta-commons-beanutils
+Requires:       jakarta-commons-collections
+Requires:       jakarta-commons-httpclient
+Requires:       jakarta-commons-io
+Requires:       jakarta-commons-lang
+Requires:       jakarta-commons-logging
+BuildRequires:  ant
+BuildRequires:  ant-trax
+BuildRequires:  checkstyle = 0:%{cs_ver}
+BuildRequires:  checkstyle-optional = 0:%{cs_ver}
+BuildRequires:  eclipse-pde >= 1:%{eclipse_ver}
+BuildRequires:  jakarta-commons-beanutils
+BuildRequires:  jakarta-commons-collections
+BuildRequires:  jakarta-commons-httpclient
+BuildRequires:  jakarta-commons-io
+BuildRequires:  jakarta-commons-lang
+BuildRequires:  jakarta-commons-logging
+BuildRequires:  jpackage-utils >= 0:1.5
+BuildRequires:  xalan-j2
+BuildRequires:  xerces-j2
 %if %{gcj_support}
-BuildRequires:          java-gcj-compat-devel >= 1.0.33
-Requires(post):         java-gcj-compat >= 1.0.33
-Requires(postun):       java-gcj-compat >= 1.0.33
+Requires(post): java-gcj-compat
+Requires(postun): java-gcj-compat
+BuildRequires:  java-gcj-compat-devel
 %else
-BuildRequires:          java-devel >= 1.4.2
+BuildRequires:  java-devel
 %endif
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
 The Eclipse Checkstyle plugin integrates the Checkstyle Java code
@@ -45,25 +55,14 @@ possible error prone code constructs.
 
 %prep
 %setup -q -c
-%patch0
-%patch1
-
-# rewrite classpath
-perl -p -i -e "s/checkstyle-all-%{cs_ver}.jar/[checkstyle-%{cs_ver}].jar,\
-[checkstyle-optional-%{cs_ver}].jar,[commons-beanutils-core].jar,\
-[commons-logging].jar,[antlr].jar/g" CheckstylePlugin/META-INF/MANIFEST.MF
+%patch0 -p0
+%patch1 -p0
+%{__mkdir_p} target/docs
 
 %build
-# make target directory for build.plugin.docs
-mkdir -p target/docs
+export OPT_JAR_LIST="ant/ant-trax xalan-j2 xalan-j2-serializer xerces-j2"
+export CLASSPATH=$(build-classpath checkstyle checkstyle-optional commons-beanutils-core jakarta-commons-collections commons-httpclient commons-io commons-lang)
 
-# remove any precompiled bits (also done in checkout_and_build_tarball.sh)
-find . -regextype posix-egrep -regex '.*.jar|.*.zip|.*.class' -type f -print \
-    | xargs rm -f
-
-# create build classpath
-export CLASSPATH=$(build-classpath checkstyle \
-                          checkstyle-optional xerces-j2 xalan-j2)
 for jar in \
 %{_jnidir}/swt-gtk-%{eclipse_ver}*.jar \
 %{eclipse_base}/plugins/org.eclipse.core.commands_%{eclipse_ver}*.*.jar \
@@ -86,9 +85,10 @@ for jar in \
 %{eclipse_base}/plugins/org.eclipse.ui.workbench.texteditor_%{eclipse_ver}*.*.jar \
 %{eclipse_base}/plugins/org.eclipse.equinox.common_%{eclipse_ver}*.*.jar \
 %{eclipse_base}/plugins/org.eclipse.equinox.registry_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.jobs_%{eclipse_ver}*.*.jar
+%{eclipse_base}/plugins/org.eclipse.core.jobs_%{eclipse_ver}*.*.jar \
+%{eclipse_base}/plugins/org.eclipse.equinox.preferences_%{eclipse_ver}*.*.jar
 do
-  test -f  ${jar} || exit 1
+  %{_bindir}/test -f  ${jar} || exit 1
   CLASSPATH=$CLASSPATH:${jar}
 done
 
@@ -99,14 +99,16 @@ pushd CheckstylePlugin/build
     -Declipse.plugin.dir=%{eclipse_base}/plugins \
     -Dworkspace=.. \
     -Declipse.version=%{eclipse_ver} \
-    -Dproject.name=CheckstylePlugin_4.0.1 \
-    build.bindist
+    -Dproject.name=CheckstylePlugin_%{version} \
+    build.bindist build.feature
 
 popd
 
 %install
-rm -rf %{buildroot}
-install -d -m755 %{buildroot}/%{eclipse_base}/features/com.atlassw.tools.eclipse.checkstyle_%{version}
+%{__rm} -rf %{buildroot}
+
+%{__mkdir_p} %{buildroot}/%{eclipse_base}/features/com.atlassw.tools.eclipse.checkstyle_%{version}
+
 BUILD_DIR=`pwd`/CheckstylePlugin
 
 # install feature
@@ -117,41 +119,41 @@ popd
 # install plugin
 pushd %{buildroot}/%{eclipse_base}
     %{jar} xvf ${BUILD_DIR}/dist/com.atlassw.tools.eclipse.checkstyle_%{version}-bin.zip
-    find . -type f -name '*src.zip' -print | xargs -t rm -f
-    build-jar-repository \
+    %{_bindir}/build-jar-repository \
     %{buildroot}/%{eclipse_base}/plugins/com.atlassw.tools.eclipse.checkstyle_%{version} \
-    checkstyle-%{cs_ver} \
-    checkstyle-optional-%{cs_ver} \
-    commons-beanutils-core \
-    commons-logging antlr
+    checkstyle \
+    checkstyle-optional \
+    antlr \
+    jakarta-commons-logging \
+    jakarta-commons-cli \
+    jakarta-commons-beanutils-core \
+    jakarta-commons-collections \
+    commons-httpclient \
+    commons-io \
+    commons-lang
 popd
 
 %if %{gcj_support}
-  %{_bindir}/aot-compile-rpm
+%{_bindir}/aot-compile-rpm
 %endif
 
 %clean 
-rm -rf %{buildroot}
+%{__rm} -rf %{buildroot}
 
 %if %{gcj_support}
 %post
-if [ -x %{_bindir}/rebuild-gcj-db ]
-then
-  %{_bindir}/rebuild-gcj-db
-fi
+%{update_gcjdb}
+
 %postun
-if [ -x %{_bindir}/rebuild-gcj-db ]
-then
-  %{_bindir}/rebuild-gcj-db
-fi
+%{clean_gcjdb}
 %endif
 
 %files
-%defattr(-,root,root)
+%defattr(0644,root,root,0755)
 %doc CheckstylePlugin/license/LICENSE.*
 %{eclipse_base}/features/*
 %{eclipse_base}/plugins/*
-
 %if %{gcj_support}
-%attr(-,root,root) %{_libdir}/gcj/%{name}
+%dir %{_libdir}/gcj/%{name}
+%attr(-,root,root) %{_libdir}/gcj/%{name}/*
 %endif
