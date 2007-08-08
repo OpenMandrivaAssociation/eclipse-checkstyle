@@ -1,11 +1,11 @@
 %define eclipse_base    %{_datadir}/eclipse
 %define cs_ver          4.3
-%define eclipse_ver     3.2
+%define eclipse_ver     3.3
 %define gcj_support     1
 
 Name:           eclipse-checkstyle
 Version:        4.3.2
-Release:        %mkrel 0.0.1
+Release:        %mkrel 0.0.2
 Epoch:          0
 Summary:        Checkstyle plugin for Eclipse
 License:        LGPL
@@ -85,8 +85,8 @@ for jar in \
 %{eclipse_base}/plugins/org.eclipse.ui.workbench.texteditor_%{eclipse_ver}*.*.jar \
 %{eclipse_base}/plugins/org.eclipse.equinox.common_%{eclipse_ver}*.*.jar \
 %{eclipse_base}/plugins/org.eclipse.equinox.registry_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.jobs_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.equinox.preferences_%{eclipse_ver}*.*.jar
+%{eclipse_base}/plugins/org.eclipse.equinox.preferences_3.2*.*.jar \
+%{eclipse_base}/plugins/org.eclipse.core.jobs_%{eclipse_ver}*.*.jar
 do
   %{_bindir}/test -f  ${jar} || exit 1
   CLASSPATH=$CLASSPATH:${jar}
