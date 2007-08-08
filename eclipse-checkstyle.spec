@@ -28,7 +28,7 @@ BuildRequires:  ant
 BuildRequires:  ant-trax
 BuildRequires:  checkstyle = 0:%{cs_ver}
 BuildRequires:  checkstyle-optional = 0:%{cs_ver}
-BuildRequires:  eclipse-cvs-client 1:%{eclipse_ver}
+BuildRequires:  eclipse-cvs-client >= 1:%{eclipse_ver}
 BuildRequires:  eclipse-pde >= 1:%{eclipse_ver}
 BuildRequires:  jakarta-commons-beanutils
 BuildRequires:  jakarta-commons-collections
