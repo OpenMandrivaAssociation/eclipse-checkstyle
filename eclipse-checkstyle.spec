@@ -5,7 +5,7 @@
 
 Name:           eclipse-checkstyle
 Version:        4.3.2
-Release:        %mkrel 0.0.3
+Release:        %mkrel 0.0.4
 Epoch:          0
 Summary:        Checkstyle plugin for Eclipse
 License:        LGPL
@@ -36,7 +36,7 @@ BuildRequires:  jakarta-commons-httpclient
 BuildRequires:  jakarta-commons-io
 BuildRequires:  jakarta-commons-lang
 BuildRequires:  jakarta-commons-logging
-BuildRequires:  jpackage-utils >= 0:1.5
+BuildRequires:  java-rpmbuild >= 0:1.5
 BuildRequires:  xalan-j2
 BuildRequires:  xerces-j2
 %if %{gcj_support}
