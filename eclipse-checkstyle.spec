@@ -44,7 +44,6 @@ BuildRequires:  java-gcj-compat-devel
 %else
 BuildRequires:  java-devel
 %endif
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %description
 The Eclipse Checkstyle plugin integrates the Checkstyle Java code
