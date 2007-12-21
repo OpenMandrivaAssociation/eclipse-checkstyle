@@ -1,11 +1,10 @@
 %define eclipse_base    %{_datadir}/eclipse
-%define cs_ver          4.3
 %define eclipse_ver     3.3
 %define gcj_support     1
 
 Name:           eclipse-checkstyle
 Version:        4.3.2
-Release:        %mkrel 0.0.4
+Release:        %mkrel 0.0.5
 Epoch:          0
 Summary:        Checkstyle plugin for Eclipse
 License:        LGPL
@@ -16,8 +15,8 @@ Source1:        checkout_and_build_tarball.sh
 Patch0:         %{name}-4.3.2.patch
 Patch1:         %{name}-4.3.2-manifest.patch
 Requires:       eclipse-platform >= 1:%{eclipse_ver}
-Requires:       checkstyle = 0:%{cs_ver}
-Requires:       checkstyle-optional = 0:%{cs_ver}
+Requires:       checkstyle
+Requires:       checkstyle-optional
 Requires:       jakarta-commons-beanutils
 Requires:       jakarta-commons-collections
 Requires:       jakarta-commons-httpclient
@@ -26,8 +25,8 @@ Requires:       jakarta-commons-lang
 Requires:       jakarta-commons-logging
 BuildRequires:  ant
 BuildRequires:  ant-trax
-BuildRequires:  checkstyle = 0:%{cs_ver}
-BuildRequires:  checkstyle-optional = 0:%{cs_ver}
+BuildRequires:  checkstyle
+BuildRequires:  checkstyle-optional
 BuildRequires:  eclipse-cvs-client >= 1:%{eclipse_ver}
 BuildRequires:  eclipse-pde >= 1:%{eclipse_ver}
 BuildRequires:  jakarta-commons-beanutils
