@@ -4,7 +4,7 @@
 
 Name:           eclipse-checkstyle
 Version:        4.3.2
-Release:        %mkrel 0.0.5
+Release:        %mkrel 0.0.6
 Epoch:          0
 Summary:        Checkstyle plugin for Eclipse
 License:        LGPL
