@@ -1,49 +1,45 @@
-%define eclipse_base    %{_datadir}/eclipse
-%define eclipse_ver     3.3
-%define gcj_support     1
+%global eclipse_base %{_libdir}/eclipse
+%global install_loc %{_datadir}/eclipse/dropins/checkstyle
+%global cs_ver 5.1
+%global eclipse_ver 3.5
 
-Name:           eclipse-checkstyle
-Version:        4.3.2
-Release:        %mkrel 0.0.6
-Epoch:          0
-Summary:        Checkstyle plugin for Eclipse
-License:        LGPL
-Group:          Development/Java
-URL:            http://eclipse-cs.sourceforge.net/
-Source0:        CheckstylePlugin-v4_3_2.tar.bz2
-Source1:        checkout_and_build_tarball.sh
-Patch0:         %{name}-4.3.2.patch
-Patch1:         %{name}-4.3.2-manifest.patch
-Requires:       eclipse-platform >= 1:%{eclipse_ver}
-Requires:       checkstyle
-Requires:       checkstyle-optional
-Requires:       jakarta-commons-beanutils
-Requires:       jakarta-commons-collections
-Requires:       jakarta-commons-httpclient
-Requires:       jakarta-commons-io
-Requires:       jakarta-commons-lang
-Requires:       jakarta-commons-logging
-BuildRequires:  ant
-BuildRequires:  ant-trax
-BuildRequires:  checkstyle
-BuildRequires:  checkstyle-optional
-BuildRequires:  eclipse-cvs-client >= 1:%{eclipse_ver}
-BuildRequires:  eclipse-pde >= 1:%{eclipse_ver}
-BuildRequires:  jakarta-commons-beanutils
-BuildRequires:  jakarta-commons-collections
-BuildRequires:  jakarta-commons-httpclient
-BuildRequires:  jakarta-commons-io
-BuildRequires:  jakarta-commons-lang
-BuildRequires:  jakarta-commons-logging
-BuildRequires:  java-rpmbuild >= 0:1.5
-BuildRequires:  xalan-j2
-BuildRequires:  xerces-j2
-%if %{gcj_support}
-BuildRequires:  java-gcj-compat-devel
-%else
-BuildRequires:  java-devel
-%endif
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
+Summary:   Checkstyle plugin for Eclipse
+Name:      eclipse-checkstyle
+Version:   5.1.0
+Release:   3
+License:   LGPLv2+
+Group:     Development/Java
+URL:       http://eclipse-cs.sourceforge.net
+BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
+BuildArch: noarch
+
+Source0: %{name}-%{version}.tar.xz 
+Source10: eclipse-eclipsecs-fetch-src.sh
+Patch0:  itext-rtf-remove.patch
+Patch1:  unpack-plugins.patch
+
+# remove problematic getEclipseClasspath call and checkstyle jar inclusion
+#Patch0: %{name}-%{version}.patch
+# remove problematic eclipse 3.0 backwards compatibility
+#Patch1: %{name}-%{version}-tabwidth.patch
+
+Requires: eclipse-platform >= 0:%{eclipse_ver}
+Requires: eclipse-jdt
+Requires: checkstyle >= 0:%{cs_ver}
+Requires: guava
+Requires: apache-commons-beanutils
+Requires: apache-commons-io
+Requires: dom4j
+
+BuildRequires: jpackage-utils >= 0:1.5
+BuildRequires: ant >= 0:1.6
+BuildRequires: eclipse-pde >= 0:%{eclipse_ver}
+BuildRequires: checkstyle >= 0:%{cs_ver}
+BuildRequires: java-devel >= 1.4.2
+BuildRequires: apache-commons-io
+BuildRequires: guava
+BuildRequires: jfreechart
+BuildRequires: dom4j
 
 %description
 The Eclipse Checkstyle plugin integrates the Checkstyle Java code
@@ -52,106 +48,65 @@ to the user about violations of rules that check for coding style and
 possible error prone code constructs. 
 
 %prep
-%setup -q -c
-%patch0 -p0
+%setup -q 
+%patch0 -p0 -R
 %patch1 -p0
-%{__mkdir_p} target/docs
+
+find -name '*.class' -exec rm -f '{}' \;
+find -name '*.jar' -exec rm -f '{}' \;
+
+sed -i -e "s|checkstyle-all-5.1.jar|checkstyle-all-5.1.jar,guava.jar,commons-beanutils.jar|g"  net.sf.eclipsecs.checkstyle/META-INF/MANIFEST.MF
+
+ln -s %{_javadir}/checkstyle.jar net.sf.eclipsecs.checkstyle/checkstyle-all-5.1.jar
+ln -s %{_javadir}/guava.jar net.sf.eclipsecs.checkstyle/guava.jar
+ln -s %{_javadir}/commons-beanutils.jar net.sf.eclipsecs.checkstyle/commons-beanutils.jar
+ln -s %{_javadir}/commons-io.jar net.sf.eclipsecs.core/lib/commons-io-1.2.jar
+ln -s %{_javadir}/commons-lang.jar net.sf.eclipsecs.core/lib/commons-lang-2.3.jar
+ln -s %{_javadir}/dom4j.jar net.sf.eclipsecs.core/lib/dom4j-1.6.1.jar
+
+ln -s %{_javadir}/jcommon.jar net.sf.eclipsecs.ui/lib/jcommon-1.0.9.jar
+ln -s %{_javadir}/jfreechart.jar net.sf.eclipsecs.ui/lib/jfreechart-1.0.5.jar
+ln -s %{_javadir}/itext.jar net.sf.eclipsecs.ui/lib/itext-2.0.1.jar
+
+rm -fr net.sf.eclipsecs.ui/src/net/sf/eclipsecs/ui/stats/export/internal/RTFStatsExporter.java
 
 %build
-export OPT_JAR_LIST="ant/ant-trax xalan-j2 xalan-j2-serializer xerces-j2"
-export CLASSPATH=$(build-classpath checkstyle checkstyle-optional commons-beanutils-core jakarta-commons-collections commons-httpclient commons-io commons-lang)
-
-for jar in \
-%{_jnidir}/swt-gtk-%{eclipse_ver}*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.commands_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.filebuffers_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.resources_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.runtime_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.jdt.core_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.jdt.ui_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.jface_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.jface.text_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.osgi_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.swt_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.team.core_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.team.cvs.core_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.text_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.ui_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.ui.editors_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.ui.ide_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.ui.workbench_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.ui.workbench.texteditor_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.equinox.common_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.equinox.registry_%{eclipse_ver}*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.equinox.preferences_3.2*.*.jar \
-%{eclipse_base}/plugins/org.eclipse.core.jobs_%{eclipse_ver}*.*.jar
-do
-  %{_bindir}/test -f  ${jar} || exit 1
-  CLASSPATH=$CLASSPATH:${jar}
-done
-
-pushd CheckstylePlugin/build
-
-%{ant} -Dbuild.sysclasspath=only \
-    -Dcheckstyle.docs.dir=../target/docs \
-    -Declipse.plugin.dir=%{eclipse_base}/plugins \
-    -Dworkspace=.. \
-    -Declipse.version=%{eclipse_ver} \
-    -Dproject.name=CheckstylePlugin_%{version} \
-    build.bindist build.feature
-
-popd
+%{eclipse_base}/buildscripts/pdebuild
 
 %install
-%{__rm} -rf %{buildroot}
+rm -rf %{buildroot}
+install -d -m 755 $RPM_BUILD_ROOT%{install_loc}
 
-%{__mkdir_p} %{buildroot}/%{eclipse_base}/features/com.atlassw.tools.eclipse.checkstyle_%{version}
+unzip -q -o -d $RPM_BUILD_ROOT%{install_loc} \
+ build/rpmBuild/net.sf.eclipsecs.zip
 
-BUILD_DIR=`pwd`/CheckstylePlugin
+pushd $RPM_BUILD_ROOT%{install_loc}/eclipse/plugins
+rm -fr net.sf.eclipsecs.checkstyle_0.0.0/checkstyle-all-5.1.jar
+ln -s %{_javadir}/checkstyle.jar net.sf.eclipsecs.checkstyle_0.0.0/checkstyle-all-5.1.jar
+rm -fr net.sf.eclipsecs.checkstyle_0.0.0/guava.jar
+ln -s %{_javadir}/guava.jar net.sf.eclipsecs.checkstyle_0.0.0/guava.jar
+rm -fr net.sf.eclipsecs.checkstyle_0.0.0/commons-beanutils.jar
+ln -s %{_javadir}/commons-beanutils.jar net.sf.eclipsecs.checkstyle_0.0.0/commmons-beanutils.jar
+rm -fr net.sf.eclipsecs.core_0.0.0/lib/commons-io-1.2.jar
+ln -s %{_javadir}/commons-io.jar net.sf.eclipsecs.core_0.0.0/lib/commons-io-1.2.jar
+rm -fr net.sf.eclipsecs.core_0.0.0/lib/commons-lang-2.3.jar
+ln -s %{_javadir}/commons-lang.jar net.sf.eclipsecs.core_0.0.0/lib/commons-lang-2.3.jar
+rm -fr net.sf.eclipsecs.core_0.0.0/lib/dom4j-1.6.1.jar net.sf.eclipsecs.core_0.0.0/lib/dom4j-1.6.1.jar
+ln -s %{_javadir}/dom4j.jar net.sf.eclipsecs.core_0.0.0/lib/dom4j-1.6.1.jar
 
-# install feature
-pushd %{buildroot}/%{eclipse_base}/features/com.atlassw.tools.eclipse.checkstyle_%{version}
-   %{jar} xvf ${BUILD_DIR}/dist/com.atlassw.tools.eclipse.checkstyle_%{version}-feature.jar
+rm -fr net.sf.eclipsecs.ui_0.0.0/lib/jcommon-1.0.9.jar
+ln -s %{_javadir}/jcommon.jar net.sf.eclipsecs.ui_0.0.0/lib/jcommon-1.0.9.jar
+rm -fr net.sf.eclipsecs.ui_0.0.0/lib/jfreechart-1.0.5.jar
+ln -s %{_javadir}/jfreechart.jar net.sf.eclipsecs.ui_0.0.0/lib/jfreechart-1.0.5.jar
+rm -fr net.sf.eclipsecs.ui_0.0.0/lib/itext-2.0.1.jar
+ln -s %{_javadir}/itext.jar net.sf.eclipsecs.ui_0.0.0/lib/itext-2.0.1.jar
 popd
-
-# install plugin
-pushd %{buildroot}/%{eclipse_base}
-    %{jar} xvf ${BUILD_DIR}/dist/com.atlassw.tools.eclipse.checkstyle_%{version}-bin.zip
-    %{_bindir}/build-jar-repository \
-    %{buildroot}/%{eclipse_base}/plugins/com.atlassw.tools.eclipse.checkstyle_%{version} \
-    checkstyle \
-    checkstyle-optional \
-    antlr \
-    jakarta-commons-logging \
-    jakarta-commons-cli \
-    jakarta-commons-beanutils-core \
-    jakarta-commons-collections \
-    commons-httpclient \
-    commons-io \
-    commons-lang
-popd
-
-%if %{gcj_support}
-%{_bindir}/aot-compile-rpm
-%endif
 
 %clean 
-%{__rm} -rf %{buildroot}
-
-%if %{gcj_support}
-%post
-%{update_gcjdb}
-
-%postun
-%{clean_gcjdb}
-%endif
+rm -rf %{buildroot}
 
 %files
-%defattr(0644,root,root,0755)
-%doc CheckstylePlugin/license/LICENSE.*
-%{eclipse_base}/features/*
-%{eclipse_base}/plugins/*
-%if %{gcj_support}
-%dir %{_libdir}/gcj/%{name}
-%attr(-,root,root) %{_libdir}/gcj/%{name}/*
-%endif
+%defattr(-,root,root)
+%doc net.sf.eclipsecs-feature/license.html
+%{install_loc}
+
