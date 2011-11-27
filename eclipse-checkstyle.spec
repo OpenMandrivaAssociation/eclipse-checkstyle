@@ -6,7 +6,7 @@
 Summary:   Checkstyle plugin for Eclipse
 Name:      eclipse-checkstyle
 Version:   5.1.0
-Release:   3
+Release:   5
 License:   LGPLv2+
 Group:     Development/Java
 URL:       http://eclipse-cs.sourceforge.net
