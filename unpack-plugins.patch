@@ -1,0 +1,21 @@
+--- net.sf.eclipsecs-feature/feature.xml.sav	2010-07-01 20:44:12.158193231 +0300
++++ net.sf.eclipsecs-feature/feature.xml	2010-07-01 20:44:43.727164634 +0300
+@@ -47,8 +47,7 @@
+          id="net.sf.eclipsecs.core"
+          download-size="0"
+          install-size="0"
+-         version="0.0.0"
+-         unpack="false"/>
++         version="0.0.0"/>
+ 
+    <plugin
+          id="net.sf.eclipsecs.doc"
+@@ -67,7 +66,6 @@
+          id="net.sf.eclipsecs.ui"
+          download-size="0"
+          install-size="0"
+-         version="0.0.0"
+-         unpack="false"/>
++         version="0.0.0"/>
+ 
+ </feature>
