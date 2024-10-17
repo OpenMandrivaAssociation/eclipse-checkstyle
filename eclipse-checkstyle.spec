@@ -9,7 +9,7 @@ Version:   5.1.0
 Release:   5
 License:   LGPLv2+
 Group:     Development/Java
-URL:       http://eclipse-cs.sourceforge.net
+URL:       https://eclipse-cs.sourceforge.net
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildArch: noarch
 
